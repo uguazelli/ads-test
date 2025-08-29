@@ -1,0 +1,82 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: ads_pg
+    environment:
+      POSTGRES_USER: ${PGUSER:-ads}
+      POSTGRES_PASSWORD: ${PGPASSWORD:-ads123}
+      POSTGRES_DB: ${PGDATABASE:-adsdb}
+    ports:
+      - "${PGPORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-ads} -d ${PGDATABASE:-adsdb}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: ads_pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "${PGADMIN_PORT:-8081}:80"
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+
+  n8n:
+    image: n8nio/n8n:1.68.0
+    container_name: ads_n8n
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Basic auth (change in .env)
+      N8N_BASIC_AUTH_ACTIVE: "true"
+      N8N_BASIC_AUTH_USER: ${N8N_USER:-n8n}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_PASSWORD:-n8npass}
+      # Public URL if you want webhooks; otherwise leave as http://localhost:5678
+      WEBHOOK_URL: ${N8N_WEBHOOK_URL:-http://localhost:5678}
+      # Timezone
+      GENERIC_TIMEZONE: ${TZ:-America/Asuncion}
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      # Optional: mount a local folder with your exported workflow JSON
+      - ./n8n/workflows:/workflows
+
+  metrics-api:
+    build:
+      context: ./metrics-api
+      dockerfile: Dockerfile
+    container_name: ads_metrics_api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGUSER: ${PGUSER:-ads}
+      PGPASSWORD: ${PGPASSWORD:-ads123}
+      PGDATABASE: ${PGDATABASE:-adsdb}
+      PORT: ${API_PORT:-8000}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
+  n8n_data:
+  pgadmin:

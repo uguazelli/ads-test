@@ -1,0 +1,79 @@
+# ---- OS cruft ----
+.DS_Store
+Thumbs.db
+
+# ---- Python / FastAPI ----
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.dylib
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.log
+
+# ---- Environment / secrets ----
+.env
+.env.*
+!.env.example
+.envrc
+docker.env
+.docker.env
+
+# ---- Docker / Compose ----
+docker-compose.override.yml
+*.local.yml
+
+# Local bind-mounted volumes (if you create them)
+pgdata/
+pgadmin_data/
+n8n_data/
+ollama/
+data/
+
+# DB / warehouse artifacts (if generated locally)
+*.db
+*.duckdb
+
+# ---- n8n ----
+n8n/.n8n/
+n8n/.credentials*
+n8n/.config*
+n8n/.cache/
+n8n/backups/
+
+# Keep workflow exports
+!n8n/workflows/
+!n8n/workflows/*.json
+
+# ---- Results / assets ----
+results/**/*.mp4
+results/**/*.mov
+results/**/*.zip
+results/**/*.gz
+results/**/*.tgz
+
+# ---- Node (if you later add a UI) ----
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ---- IDE / Editor ----
+.vscode/
+.idea/
+*.iml
+*.code-workspace
+
+# ---- Swap files ----
+*.swp
+*.swo
